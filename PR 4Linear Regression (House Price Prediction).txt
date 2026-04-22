@@ -1,0 +1,238 @@
+TOPIC: Practical 4 — Linear Regression — Housing Dataset (Price Prediction)
+=============================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("Housing.csv")
+df.dtypes
+df.info()
+df.shape
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+binary_columns = ['mainroad','guestroom','basement','hotwaterheating','airconditioning','prefarea']
+for col in binary_columns:
+    df[col] = df[col].map({'yes': 1, 'no': 0})
+
+le = LabelEncoder()
+df['furnishingstatus'] = le.fit_transform(df['furnishingstatus'])
+
+scaler = StandardScaler()
+features = df.drop('price', axis=1)
+y = df['price']
+X_scaled = scaler.fit_transform(features)
+
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print('Intercept:', model.intercept_)
+print('Coefficients:', model.coef_)
+
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+print("MSE:", mse)
+print("RMSE:", rmse)
+print("R2 Score:", r2)
+
+plt.scatter(y_test, y_pred)
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Actual vs Predicted House Prices")
+plt.show()
+
+results = pd.DataFrame({"Actual Price": y_test, "Predicted Price": y_pred})
+print(results.head(10))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Housing dataset: 545 rows, 13 columns
+# Target = price; features = area, bedrooms, bathrooms,
+# stories, mainroad, guestroom, basement, etc.
+df = pd.read_csv("Housing.csv")
+df.dtypes   # Check column types: int64 and object (text)
+df.info()   # 545 non-null records, no missing values
+df.shape    # (545, 13)
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+# BINARY ENCODING — Convert yes/no text columns to 1/0
+# df[col].map({'yes': 1, 'no': 0}) is a manual mapping
+# Simpler and more readable than LabelEncoder for binary cols
+binary_columns = ['mainroad','guestroom','basement','hotwaterheating','airconditioning','prefarea']
+for col in binary_columns:
+    df[col] = df[col].map({'yes': 1, 'no': 0})
+
+# LABEL ENCODING — furnishingstatus has 3 categories:
+# furnished → 0, semi-furnished → 1, unfurnished → 2
+le = LabelEncoder()
+df['furnishingstatus'] = le.fit_transform(df['furnishingstatus'])
+
+# FEATURE SCALING — StandardScaler: mean=0, std=1
+# Features have very different scales: area (7420) vs bedrooms (2-5)
+scaler = StandardScaler()
+features = df.drop('price', axis=1)  # All columns except target
+y = df['price']                       # Target variable
+X_scaled = scaler.fit_transform(features)  # Scale all features
+
+# TRAIN-TEST SPLIT: 80% train (436 rows), 20% test (109 rows)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42)
+
+# LINEAR REGRESSION MODEL
+# Finds the best fit line: y = b0 + b1*x1 + b2*x2 + ... + bn*xn
+model = LinearRegression()
+model.fit(X_train, y_train)   # Learn coefficients from training data
+y_pred = model.predict(X_test) # Predict house prices for test set
+
+# Model parameters
+print('Intercept:', model.intercept_)    # b0 = 4738612 (base price)
+print('Coefficients:', model.coef_)     # b1...b12 per feature
+
+# EVALUATION METRICS
+mse = mean_squared_error(y_test, y_pred)
+# MSE = mean of (actual - predicted)^2. Lower is better.
+rmse = np.sqrt(mse)
+# RMSE = sqrt(MSE). In same units as price. RMSE = 1,331,072 rupees.
+r2 = r2_score(y_test, y_pred)
+# R² = 0.649 → model explains 64.9% of variance in price.
+# R² of 1.0 = perfect, 0.0 = predicts only mean.
+
+print("MSE:", mse)       # 1,771,753,118,554
+print("RMSE:", rmse)     # 1,331,072
+print("R2 Score:", r2)   # 0.649
+
+# SCATTER PLOT: Actual vs Predicted
+# Perfect model would have all points on a diagonal line
+plt.scatter(y_test, y_pred)
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Actual vs Predicted House Prices")
+plt.show()
+
+# DataFrame comparison: actual vs model predictions
+results = pd.DataFrame({"Actual Price": y_test, "Predicted Price": y_pred})
+print(results.head(10))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Linear Regression:
+   Predicts continuous output by fitting a line/hyperplane.
+   Simple: y = b0 + b1*x
+   Multiple: y = b0 + b1*x1 + b2*x2 + ... + bn*xn
+   b0 = intercept (y-value when all x=0)
+   b1...bn = coefficients (slope per feature)
+
+2. Ordinary Least Squares (OLS):
+   Linear Regression minimizes sum of squared errors:
+   Loss = Σ(y_actual - y_predicted)²
+   Finds coefficients that minimize this loss.
+
+3. Evaluation Metrics for Regression:
+   MSE  = Mean Squared Error = Σ(y - ŷ)² / n
+          Penalizes large errors heavily (squares them)
+   RMSE = √MSE = in same unit as target (price in ₹)
+   R²   = 1 - (SS_res / SS_tot)
+          1.0 = perfect prediction; 0.0 = predicts mean only
+          Our model: R² = 0.649 → explains 64.9% of variance
+
+4. Encoding Categorical Variables:
+   Binary: yes/no → map({'yes':1, 'no':0})
+   Multi-class: furnished/semi/unfurnished → LabelEncoder (0,1,2)
+   ML models cannot process text strings — must be numbers.
+
+5. Feature Scaling (StandardScaler):
+   z = (x - mean) / std  → transforms to mean=0, std=1
+   Important for LinearRegression when features have
+   very different ranges (area=7000 vs bedrooms=2-6).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is Linear Regression?
+A: A supervised ML algorithm that predicts a continuous
+   output variable by fitting a straight line through data.
+
+Q2. What is the Linear Regression equation?
+A: y = b0 + b1*x1 + b2*x2 + ... + bn*xn
+   where b0=intercept, b1..bn=coefficients (slopes).
+
+Q3. What is R² Score?
+A: Coefficient of determination. Measures how well the model
+   explains variance in the target variable.
+   R²=1.0 → perfect, R²=0.0 → as good as predicting the mean.
+
+Q4. What is RMSE?
+A: Root Mean Squared Error = √MSE. In the same unit as
+   the target. RMSE=1.3M means predictions are off by ~₹13L.
+
+Q5. Why encode yes/no columns?
+A: ML models only work with numbers. 'yes'/'no' strings
+   must be mapped to 1/0 for the algorithm to process them.
+
+--- INTERMEDIATE ---
+Q6. Difference between MSE and RMSE?
+A: MSE = average squared error (larger penalty for big errors).
+   RMSE = √MSE, interpretable in original units (price in ₹).
+   RMSE is more intuitive; MSE is used in loss functions.
+
+Q7. What does model.coef_ give?
+A: The weight/slope of each feature.
+   area coefficient = 511,355 → for every 1 std unit increase
+   in area, price increases by ₹511,355.
+
+Q8. What does model.intercept_ represent?
+A: The price when all features = 0 (after scaling).
+   intercept = ₹4,738,612 → base price of a house.
+
+Q9. Why use StandardScaler with Linear Regression?
+A: Features like area (7420) vs bedrooms (2-5) have very
+   different ranges. Scaling prevents area from dominating
+   the coefficient magnitudes unfairly.
+
+--- ADVANCED ---
+Q10. What is the difference between Linear and Logistic Regression?
+A: Linear → continuous output (price, age, marks).
+   Logistic → binary output via sigmoid (buy/not-buy).
+   Both use linear equation; differ in output transformation.
+
+Q11. What assumptions does Linear Regression make?
+A: 1. Linear relationship between features and target.
+   2. Features are independent (no multicollinearity).
+   3. Residuals (errors) are normally distributed.
+   4. Homoscedasticity: constant error variance.
+
+Q12. Why is R² = 0.649 considered moderate?
+A: It means 64.9% of price variation is explained by the
+   features. Remaining 35.1% is unexplained — likely due to
+   factors not in dataset (location quality, renovation, etc.).
+   For house prices, R²>0.8 is considered good.

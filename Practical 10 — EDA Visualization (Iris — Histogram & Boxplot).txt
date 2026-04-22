@@ -1,0 +1,145 @@
+TOPIC: Practical 10 (SL3) — Histogram and Boxplot on Iris Dataset
+===================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+dataset = sns.load_dataset('iris')
+dataset.head()
+dataset.dtypes
+
+dataset.hist()
+plt.show()
+
+sns.boxplot(data=dataset)
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load Iris dataset from seaborn's built-in dataset collection
+# Seaborn version uses lowercase column names without "Cm" suffix
+dataset = sns.load_dataset('iris')
+dataset.head()    # Preview: sepal_length, sepal_width, petal_length, petal_width, species
+
+# Check dtypes: all measurements are float64, species is object (text)
+dataset.dtypes
+
+# HISTOGRAM for all numeric columns
+# .hist() automatically creates one histogram per numeric column
+# Subplots are arranged in a grid
+dataset.hist()
+plt.show()
+# Output: 4 histograms — sepal_length (bell-shaped),
+# sepal_width (roughly normal), petal_length (bimodal),
+# petal_width (bimodal: one peak near 0 for setosa, one near 1.5)
+
+# BOXPLOT of all 4 numeric columns together
+# sns.boxplot(data=dataset) plots all columns on one chart
+# Y-axis shows different ranges — sepal_length has range 4-8,
+# petal_width has range 0-2.5
+sns.boxplot(data=dataset)
+plt.show()
+# Interpretation:
+# petal_length and petal_width show clear outlier dots
+# sepal_width has the most compact IQR (most consistent)
+# sepal_length ranges most widely (4.3 to 7.9)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Histogram:
+   Plots frequency distribution of a numeric variable.
+   X-axis = bins (value ranges), Y-axis = count of values.
+   Reveals: shape (normal, skewed, bimodal), range, spread.
+
+2. Boxplot (Box-and-Whisker Plot):
+   Q1 = 25th percentile (bottom of box)
+   Q2 = Median (line inside box)
+   Q3 = 75th percentile (top of box)
+   IQR = Q3 - Q1
+   Whiskers = Q1 - 1.5×IQR to Q3 + 1.5×IQR
+   Dots beyond whiskers = outliers
+
+3. Bimodal Distribution:
+   A histogram with two peaks (modes).
+   Petal measurements in Iris are bimodal because setosa
+   (small petals) and versicolor/virginica (large petals)
+   create two distinct clusters.
+
+4. sns.load_dataset('iris'):
+   Seaborn provides built-in datasets.
+   No CSV needed — loads directly from internet cache.
+   Column names: sepal_length, sepal_width, petal_length,
+   petal_width, species (lowercase, no 'Cm').
+
+5. dataset.hist() vs sns.histplot():
+   dataset.hist() → pandas method, quick multiple plots
+   sns.histplot() → seaborn method, more control (kde, bins,
+   color, hue). Both show frequency distributions.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is a histogram?
+A: A bar chart showing frequency distribution of a numeric
+   variable. X-axis = bins (ranges), Y-axis = count.
+
+Q2. What is a boxplot?
+A: A plot showing data distribution via Q1, Median, Q3,
+   whiskers and outlier dots.
+
+Q3. What does dataset.dtypes show for Iris?
+A: All measurement columns are float64.
+   Species column is 'object' (text/string type).
+
+Q4. What does dataset.hist() plot?
+A: One histogram for each numeric column automatically.
+   For Iris: 4 histograms (sepal length/width, petal length/width).
+
+Q5. What is a bimodal distribution?
+A: A distribution with two peaks (two most common value ranges).
+   Petal length in Iris is bimodal due to species differences.
+
+--- INTERMEDIATE ---
+Q6. What do outlier dots in a boxplot mean?
+A: Data points that fall outside Q1-1.5×IQR or Q3+1.5×IQR.
+   They may be measurement errors or genuinely extreme values.
+
+Q7. Why does sepal_width look nearly normal in histogram?
+A: Sepal width varies similarly across all 3 species (~2.5-3.5cm)
+   unlike petal measurements which differ greatly by species.
+
+Q8. What is sns.load_dataset()?
+A: Seaborn utility that downloads built-in example datasets
+   (iris, titanic, tips, etc.) from a remote repository.
+
+--- ADVANCED ---
+Q9. How does a histogram help in feature selection for ML?
+A: Reveals if features have good spread (useful) or are
+   concentrated in one value (low variance = low information).
+   Bimodal distributions can indicate strong class separability.
+
+Q10. What can you infer from boxplot about class separability?
+A: If boxplots of different species don't overlap much,
+   the feature is useful for classification.
+   Petal length: Setosa (1-2cm) vs Virginica (4.5-6.5cm) → great separator.
+   Sepal width: All species overlap heavily → poor separator.

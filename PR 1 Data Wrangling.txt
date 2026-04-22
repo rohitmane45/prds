@@ -1,0 +1,234 @@
+TOPIC: Practical 1 — Data Wrangling, EDA, Normalization (Iris Dataset)
+========================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("Iris.csv")
+print(df.head(5))
+print(df.tail(6))
+df.info()
+df.describe()
+df.isnull().sum()
+df.drop_duplicates()
+df.isna()
+df.sample(4)
+
+np.ndim(df)
+np.shape(df)
+np.size(df)
+df.dtypes
+df.index
+
+print(df['SepalLengthCm'].sum())
+print(df[['SepalLengthCm', 'SepalWidthCm']].mean())
+
+df.iloc[3::, 2]
+df.iloc[[2, 8], 2:]
+
+x = df[['SepalLengthCm']].values.astype(float)
+
+from sklearn import preprocessing
+min_max_scaler = preprocessing.MinMaxScaler()
+x_scaled = min_max_scaler.fit_transform(x)
+df_normalized = pd.DataFrame(x_scaled)
+print(df_normalized)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+ax1.scatter(range(len(x)), x, alpha=1)
+ax1.set_title('Before Normalization (Original)')
+ax1.set_xlabel('Index')
+ax1.set_ylabel('SepalLengthCm')
+ax1.grid(True)
+
+ax2.scatter(range(len(x_scaled)), x_scaled, alpha=1)
+ax2.set_title('After Normalization (Scaled 0-1)')
+ax2.set_xlabel('Index')
+ax2.set_ylabel('Scaled Value')
+ax2.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import numpy as np         # NumPy: array operations, ndim, shape, size
+import pandas as pd        # Pandas: DataFrame loading and manipulation
+import matplotlib.pyplot as plt  # Visualization
+
+# Load Iris CSV: 150 rows × 6 columns
+df = pd.read_csv("Iris.csv")
+
+# head(5) → first 5 rows; tail(6) → last 6 rows
+# Used to preview the dataset structure
+print(df.head(5))
+print(df.tail(6))
+
+# info() → shows column names, non-null count, dtypes (int64, float64, object)
+df.info()
+
+# describe() → statistical summary: count, mean, std, min, 25%, 50%, 75%, max
+df.describe()
+
+# isnull().sum() → count of NaN/missing values per column (all 0 for Iris)
+df.isnull().sum()
+
+# drop_duplicates() → removes duplicate rows and returns clean DataFrame
+df.drop_duplicates()
+
+# isna() → returns True/False boolean table: True = missing, False = present
+df.isna()
+
+# sample(4) → randomly picks 4 rows (useful for quick sanity checks)
+df.sample(4)
+
+# np.ndim(df) → number of dimensions: 2 (rows and columns)
+np.ndim(df)
+# np.shape(df) → (150, 6) - 150 rows, 6 columns
+np.shape(df)
+# np.size(df) → 150*6 = 900 total elements
+np.size(df)
+
+# dtypes → shows data type of each column
+df.dtypes
+# index → shows RangeIndex(start=0, stop=150, step=1)
+df.index
+
+# Column-wise aggregation
+print(df['SepalLengthCm'].sum())           # Total sum: 876.5
+print(df[['SepalLengthCm', 'SepalWidthCm']].mean())  # Mean of 2 columns
+
+# iloc[3::, 2] → rows from index 3 onwards, column at position 2 (SepalWidthCm)
+df.iloc[3::, 2]
+# iloc[[2,8], 2:] → rows 2 and 8, columns from position 2 onwards
+df.iloc[[2, 8], 2:]
+
+# NORMALIZATION using MinMaxScaler
+# Scales values to range [0, 1] using formula: (x - min) / (max - min)
+x = df[['SepalLengthCm']].values.astype(float)  # Extract as numpy array
+
+from sklearn import preprocessing
+min_max_scaler = preprocessing.MinMaxScaler()
+# fit_transform: learns min/max then scales the column
+x_scaled = min_max_scaler.fit_transform(x)
+df_normalized = pd.DataFrame(x_scaled)  # Convert back to DataFrame for display
+print(df_normalized)
+
+# VISUALIZATION: Side-by-side comparison before and after normalization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))  # 1 row, 2 plots
+
+# Left plot: original values (range ~4.3 to 7.9)
+ax1.scatter(range(len(x)), x, alpha=1)
+ax1.set_title('Before Normalization (Original)')
+ax1.set_xlabel('Index')
+ax1.set_ylabel('SepalLengthCm')
+ax1.grid(True)
+
+# Right plot: scaled values (range 0.0 to 1.0)
+ax2.scatter(range(len(x_scaled)), x_scaled, alpha=1)
+ax2.set_title('After Normalization (Scaled 0-1)')
+ax2.set_xlabel('Index')
+ax2.set_ylabel('Scaled Value')
+ax2.grid(True)
+
+plt.tight_layout()  # Prevents plots from overlapping
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Data Wrangling (Data Preprocessing):
+   Process of cleaning, transforming, and preparing raw data
+   for analysis. Steps: load → inspect → clean → transform → analyze.
+
+2. Pandas Key Methods:
+   head(n) / tail(n)   → view first/last n rows
+   info()              → column dtypes, null counts, memory
+   describe()          → stats: mean, std, min, max, quartiles
+   isnull().sum()      → count missing values per column
+   drop_duplicates()   → remove exact duplicate rows
+   sample(n)           → random n rows (for spot-checking)
+   iloc[row, col]      → select by integer position index
+
+3. NumPy on DataFrame:
+   np.ndim(df)  → 2 (2D structure: rows and columns)
+   np.shape(df) → (150, 6) → (rows, columns)
+   np.size(df)  → 900 → total cell count (150 × 6)
+
+4. MinMax Normalization:
+   Formula: x_scaled = (x - x_min) / (x_max - x_min)
+   Output range: [0, 1]
+   Why: Prevents large-range features from dominating ML models.
+   SepalLength: 4.3-7.9 → scaled to 0.0-1.0
+
+5. iloc vs loc:
+   iloc → integer position based (0, 1, 2...)
+   loc  → label/index name based
+   iloc[3::, 2] → from row 3 to end, column index 2
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is Data Wrangling?
+A: Process of cleaning, transforming and preparing raw data
+   to make it suitable for analysis and modeling.
+
+Q2. What does df.describe() show?
+A: Statistical summary: count, mean, std, min, 25%, 50%
+   (median), 75%, and max for numeric columns.
+
+Q3. What is the difference between isnull() and isna()?
+A: They are identical — both return a boolean DataFrame
+   where True = missing value (NaN).
+
+Q4. What does MinMax normalization do?
+A: Scales all values to range [0, 1] using:
+   (x - min) / (max - min). Preserves relative distances.
+
+Q5. What is df.iloc[[2,8], 2:]?
+A: Selects rows at positions 2 and 8, and all columns
+   from position 2 onwards (inclusive).
+
+--- INTERMEDIATE ---
+Q6. What is np.size(df)?
+A: Returns total number of elements = rows × columns = 900.
+
+Q7. Why normalize data before ML?
+A: Features with large scales (Salary: 150k) dominate
+   distance-based algorithms (KNN, SVM) over small features
+   (Age: 60). Normalization gives equal weight to all features.
+
+Q8. Difference between MinMax and StandardScaler?
+A: MinMax → scales to [0,1]; sensitive to outliers.
+   StandardScaler → mean=0, std=1; handles outliers better.
+
+Q9. What does df.sample(4) do?
+A: Returns 4 randomly selected rows from the DataFrame.
+   Different rows each time (use random_state for reproducibility).
+
+--- ADVANCED ---
+Q10. What is the formula for MinMax normalization?
+A: x_scaled = (x - x_min) / (x_max - x_min)
+   If x = 5.1, min = 4.3, max = 7.9: (5.1-4.3)/(7.9-4.3) = 0.222
+
+Q11. Why use fit_transform() on train and transform() on test?
+A: fit_transform() learns the min/max from training data.
+   transform() applies the SAME scale to test data.
+   If you fit on test, you cause data leakage.
+
+Q12. What is the Iris dataset?
+A: Classic ML benchmark dataset: 150 samples, 3 species
+   (Setosa, Versicolor, Virginica), 4 features (sepal/petal
+   length and width). Introduced by Ronald Fisher in 1936.

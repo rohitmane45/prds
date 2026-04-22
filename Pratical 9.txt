@@ -1,0 +1,156 @@
+TOPIC: PR 9 — Boxplot: Age by Sex and Survival (Titanic)
+==========================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+titanic = sns.load_dataset('titanic')
+
+sns.boxplot(x='sex', y='age', hue='survived', data=titanic)
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import seaborn as sns          # Statistical data visualization library
+import matplotlib.pyplot as plt  # Backend for displaying plots
+
+# Load Titanic dataset directly from seaborn's built-in datasets
+# Includes: survived, pclass, sex, age, sibsp, parch, fare,
+#           embarked, class, who, adult_male, deck, embark_town, alive, alone
+titanic = sns.load_dataset('titanic')
+
+# BOXPLOT:
+# x='sex'      → X-axis categories: male | female
+# y='age'      → Y-axis: age values (numeric)
+# hue='survived' → Split each gender box into 2:
+#                  Blue (0=died) and Orange (1=survived)
+# data=titanic → source DataFrame
+sns.boxplot(x='sex', y='age', hue='survived', data=titanic)
+plt.show()
+
+# INTERPRETATION OF OUTPUT PLOT:
+#
+# Male - Died (Blue):
+#   Box spans roughly age 25-40 (IQR)
+#   Median ≈ 29-30
+#   Two outlier dots above age 70 (elderly males who died)
+#
+# Male - Survived (Orange):
+#   Box spans roughly age 22-35
+#   Median ≈ 27
+#   Slightly younger than those who died
+#
+# Female - Died (Blue):
+#   Box spans roughly age 22-35
+#   Median ≈ 25
+#   Narrower IQR than males
+#
+# Female - Survived (Orange):
+#   Box spans roughly age 22-37
+#   Median ≈ 28
+#
+# KEY INSIGHT:
+# Females had much higher survival rates regardless of age
+# ("women and children first" policy on Titanic)
+# Males who survived tended to be slightly younger than those who died
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Boxplot Anatomy:
+   Bottom whisker → Q1 - 1.5×IQR (minimum non-outlier)
+   Bottom of box  → Q1 (25th percentile)
+   Line in box    → Median (Q2, 50th percentile)
+   Top of box     → Q3 (75th percentile)
+   Top whisker    → Q3 + 1.5×IQR (maximum non-outlier)
+   Dots           → Outliers (beyond whisker range)
+
+2. hue parameter in Seaborn:
+   Adds a third variable by splitting each category
+   into colored sub-groups.
+   hue='survived' → creates 2 boxes per gender:
+   Blue = 0 (died), Orange = 1 (survived)
+
+3. sns.load_dataset('titanic'):
+   Seaborn built-in dataset. No CSV file needed.
+   Has more columns than the basic titanic.csv:
+   adds 'who', 'adult_male', 'deck', 'embark_town', 'alive', 'alone'
+
+4. Boxplot for Outlier Analysis:
+   Outlier dots appear for passengers with extreme ages.
+   Two dots above age 70 in male group = elderly male outliers.
+   These survived but are statistical outliers in age distribution.
+
+5. Categorical + Numerical + Third Variable:
+   This is a 3-variable plot:
+   Categorical (sex) × Numerical (age) × Categorical (survived)
+   Boxplot with hue is the ideal chart type for this combination.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What does sns.boxplot() do?
+A: Draws a box-and-whisker plot showing data distribution
+   using Q1, Median, Q3, IQR, and outliers.
+
+Q2. What does hue='survived' do in this boxplot?
+A: Splits each gender group (male/female) into two colored
+   boxes: Blue=survived=0 (died), Orange=survived=1 (lived).
+
+Q3. What do the dots above the male boxes represent?
+A: Outliers — passengers with unusually high ages (>70)
+   that fall outside the Q3 + 1.5×IQR upper whisker limit.
+
+Q4. What does x='sex', y='age' mean in boxplot?
+A: x = categorical variable (male/female) on X-axis.
+   y = numeric variable (age 0-80) on Y-axis.
+   Each group gets a box showing age distribution.
+
+Q5. What is sns.load_dataset('titanic')?
+A: Loads the Titanic dataset built into Seaborn.
+   Returns a DataFrame with 891 rows and 15 columns.
+
+--- INTERMEDIATE ---
+Q6. What insight does this boxplot give about survival?
+A: Female survival boxes (orange) are well-represented,
+   suggesting high female survival rate.
+   Male survival (orange) box shows younger median vs died (blue).
+   "Women and children first" policy is clearly reflected.
+
+Q7. What is the IQR in a boxplot?
+A: Interquartile Range = Q3 - Q1 = height of the box.
+   Contains the middle 50% of data.
+   Small IQR = data is concentrated; large IQR = spread out.
+
+Q8. How do you interpret the median line in the box?
+A: The horizontal line inside the box = 50th percentile.
+   Half the values in that group are below this line,
+   and half are above it.
+
+--- ADVANCED ---
+Q9. Why is boxplot preferred over histogram for group comparison?
+A: Boxplot compares multiple groups side-by-side compactly.
+   Histogram shows only one distribution at a time.
+   With hue, boxplot shows 4 distributions in a single chart.
+
+Q10. What is the difference between boxplot and violinplot?
+A: Boxplot → shows Q1, median, Q3, outliers (5 statistics).
+   Violinplot → shows full distribution shape via KDE.
+   Violin reveals bimodal/skewed shapes; boxplot is simpler.
+
+Q11. What does it mean when two boxes overlap significantly?
+A: The two groups have similar distributions in that range.
+   Overlapping survived/died boxes for females means age
+   was not a strong factor in female survival — gender was.

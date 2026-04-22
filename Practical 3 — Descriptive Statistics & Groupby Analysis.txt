@@ -1,0 +1,192 @@
+TOPIC: Practical 3 — Descriptive Stats, Groupby, Titanic + Iris (Groupby, Quantiles)
+=======================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import seaborn as sns
+import numpy as np
+
+df = pd.read_csv("Titanic-Dataset.xls")
+df.head()
+df.info()
+
+summary = df.groupby("Pclass")["Age", "Fare"].agg(["mean", "median", "min", "max", "std"])
+print(summary)
+
+fare_list = df.groupby("Pclass")["Fare"].apply(list)
+print(fare_list)
+
+from sklearn.datasets import load_iris
+iris = load_iris()
+iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+iris_df["species"] = iris.target
+iris_df["species"] = iris_df["species"].map({
+    0: "Iris-setosa",
+    1: "Iris-versicolor",
+    2: "Iris-virginica"
+})
+iris_df.head()
+
+print(iris_df.groupby("species").describe())
+
+print(iris_df.groupby("species").quantile([0.25, 0.5, 0.75]))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import seaborn as sns
+import numpy as np
+
+# Load Titanic dataset: 891 passengers, 12 columns
+# Columns: PassengerId, Survived, Pclass, Name, Sex, Age,
+#          SibSp, Parch, Ticket, Fare, Cabin, Embarked
+df = pd.read_csv("Titanic-Dataset.xls")
+df.head()   # Preview first 5 rows
+df.info()   # Note: Age has 714 non-null (177 missing), Cabin has 204 non-null
+
+# GROUPBY + AGGREGATE on Titanic
+# Group rows by Passenger Class (1=First, 2=Second, 3=Third)
+# For both Age and Fare columns, compute multiple stats at once
+summary = df.groupby("Pclass")["Age", "Fare"].agg(["mean", "median", "min", "max", "std"])
+print(summary)
+# Results show:
+# Class 1: Mean Age=38.2, Mean Fare=84.15 (richest passengers)
+# Class 3: Mean Age=25.1, Mean Fare=13.68 (cheapest tickets)
+
+# groupby().apply(list) → collect all Fare values per Pclass into a Python list
+fare_list = df.groupby("Pclass")["Fare"].apply(list)
+print(fare_list)  # Each Pclass shows a list of all fare values
+
+# IRIS DATASET — Load from sklearn (built-in)
+from sklearn.datasets import load_iris
+iris = load_iris()
+
+# Create DataFrame from numpy array; add feature names as column headers
+iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+
+# Add species column: originally 0, 1, 2 (numeric)
+iris_df["species"] = iris.target
+
+# Map numeric labels to meaningful species names
+iris_df["species"] = iris_df["species"].map({
+    0: "Iris-setosa",
+    1: "Iris-versicolor",
+    2: "Iris-virginica"
+})
+iris_df.head()  # Preview with species names
+
+# GROUP BY species → DESCRIBE each group
+# Returns count, mean, std, min, 25%, 50%, 75%, max
+# per species per feature (4 features × 3 species)
+print(iris_df.groupby("species").describe())
+
+# QUANTILE PER GROUP
+# quantile([0.25, 0.5, 0.75]) → Q1, Median, Q3 per species
+# Useful for understanding spread of each species' measurements
+print(iris_df.groupby("species").quantile([0.25, 0.5, 0.75]))
+# Iris-setosa has smallest petal (Q2=1.5 cm)
+# Iris-virginica has largest petal (Q2=5.55 cm)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Descriptive Statistics:
+   Summarize main features of a dataset numerically.
+   Mean   = average (sum / count)
+   Median = middle value (50th percentile); robust to outliers
+   Std    = standard deviation; spread of data around mean
+   Min/Max= smallest/largest values
+
+2. groupby() in Pandas:
+   Splits DataFrame into groups based on a column value.
+   Then apply an aggregation function to each group.
+   Pattern: df.groupby("col")["target"].agg(function)
+
+3. Aggregation functions in agg():
+   "mean"   → average
+   "median" → middle value
+   "min"    → minimum
+   "max"    → maximum
+   "std"    → standard deviation
+   "count"  → number of records
+   Multiple can be combined: .agg(["mean","std","min"])
+
+4. Quantiles:
+   Divide data into equal parts.
+   Q1 (0.25) = 25th percentile
+   Q2 (0.50) = 50th percentile = Median
+   Q3 (0.75) = 75th percentile
+   IQR = Q3 - Q1
+
+5. sklearn.datasets.load_iris():
+   Built-in dataset. Returns a Bunch object with:
+   iris.data → numpy array (150×4)
+   iris.target → numeric labels (0, 1, 2)
+   iris.feature_names → column names
+   iris.target_names → ['setosa', 'versicolor', 'virginica']
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is groupby() in Pandas?
+A: Groups rows with the same value in a specified column.
+   Then you can apply aggregate functions to each group.
+
+Q2. What is the difference between mean and median?
+A: Mean = sum of values / count. Sensitive to outliers.
+   Median = middle value. Robust to outliers.
+   For Titanic Fare: Mean Fare class 1 = 84, Median = 60
+   (outlier fares pull the mean up).
+
+Q3. What does .agg() do?
+A: Applies one or more aggregate functions to grouped data.
+   Example: .agg(["mean","std"]) gives both in one call.
+
+Q4. What is a quantile?
+A: A value below which a given percentage of data falls.
+   Q1=25% → 25% of values are below this point.
+
+Q5. What does iris.target contain?
+A: Numeric class labels: 0=setosa, 1=versicolor, 2=virginica.
+   Need .map() to convert to readable species names.
+
+--- INTERMEDIATE ---
+Q6. What does groupby().apply(list) do?
+A: Instead of aggregating (mean/sum), it collects all values
+   in a group into a Python list. Useful for inspection.
+
+Q7. What does groupby("species").describe() show?
+A: For each species, it shows count, mean, std, min, 25%,
+   50%, 75%, max for ALL numeric columns — full stats per group.
+
+Q8. Why does Class 1 have the highest mean fare?
+A: First class passengers paid premium prices for luxury
+   cabins. Mean fare: Class1=84, Class2=21, Class3=14.
+
+--- ADVANCED ---
+Q9. What is the difference between describe() and agg()?
+A: describe() gives fixed standard stats (always 8 metrics).
+   agg() lets you choose specific functions and combine custom
+   and built-in aggregations with full control.
+
+Q10. What is the purpose of using .map() on iris.target?
+A: Converts integer class codes (0,1,2) to human-readable
+   species names using a dictionary mapping.
+   Equivalent to inverse_transform() in LabelEncoder.
+
+Q11. What insight does quantile analysis give over describe()?
+A: quantile([0.25, 0.5, 0.75]) per group shows exactly where
+   each species' measurements are concentrated.
+   For Iris: Setosa petal length Q3=1.575cm vs Virginica Q3=5.875cm
+   → Virginica petals are ~4× larger — clear separability.

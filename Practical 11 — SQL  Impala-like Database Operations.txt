@@ -1,0 +1,190 @@
+TOPIC: Practical 11 (SL3) — SQL Database Operations using sqlite3 (Simulating Impala)
+========================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import sqlite3
+
+conn = sqlite3.connect('my_database.db')
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE my_table (
+    id INT,
+    name TEXT,
+    age INT
+)
+""")
+
+cursor.execute("""
+INSERT INTO my_table VALUES
+(1, 'John', 25),
+(2, 'Jane', 30),
+(3, 'Bob', 40)
+""")
+
+cursor.execute("SELECT * FROM my_table")
+rows = cursor.fetchall()
+
+for row in rows:
+    print(row)
+
+conn.commit()
+conn.close()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import sqlite3  # Python's built-in module for SQLite database operations
+
+# CREATE / CONNECT to database file
+# If 'my_database.db' doesn't exist, sqlite3 creates it automatically
+conn = sqlite3.connect('my_database.db')
+
+# cursor is the object used to execute SQL queries on the connection
+cursor = conn.cursor()
+
+# CREATE TABLE: defines schema (column names and data types)
+# INT = integer, TEXT = string data
+cursor.execute("""
+CREATE TABLE my_table (
+    id INT,
+    name TEXT,
+    age INT
+)
+""")
+# Returns a Cursor object (not data — just confirms execution)
+
+# INSERT INTO: adds rows of data into the table
+# Can insert multiple rows in a single query with comma-separated tuples
+cursor.execute("""
+INSERT INTO my_table VALUES
+(1, 'John', 25),
+(2, 'Jane', 30),
+(3, 'Bob', 40)
+""")
+
+# SELECT * FROM: retrieves ALL rows and columns from the table
+# * = wildcard meaning "all columns"
+cursor.execute("SELECT * FROM my_table")
+
+# fetchall() → retrieves all result rows as a list of tuples
+rows = cursor.fetchall()
+
+# Iterate and print each row
+for row in rows:
+    print(row)
+# Output:
+# (1, 'John', 25)
+# (2, 'Jane', 30)
+# (3, 'Bob', 40)
+
+# commit() → permanently saves INSERT/UPDATE/DELETE changes to DB
+conn.commit()
+# close() → closes the database connection (good practice)
+conn.close()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. SQL (Structured Query Language):
+   Language for managing and querying relational databases.
+   CRUD Operations:
+   CREATE  → create tables/databases
+   INSERT  → add new records
+   SELECT  → retrieve data
+   UPDATE  → modify existing records
+   DELETE  → remove records
+
+2. SQLite vs Impala:
+   SQLite  → lightweight, file-based, no server needed.
+              Used here to simulate database operations.
+   Impala  → SQL engine for Apache Hadoop/HDFS.
+              Handles massive distributed datasets.
+              Same SQL syntax, different scale.
+
+3. Connection Flow in sqlite3:
+   connect(db) → creates/opens database file
+   cursor()    → creates cursor to execute queries
+   execute()   → runs SQL statement
+   fetchall()  → retrieves all result rows
+   commit()    → saves changes permanently
+   close()     → releases database connection
+
+4. SQL Data Types:
+   INT   → whole numbers (id, age)
+   TEXT  → strings (name, email)
+   REAL  → decimal numbers (price, score)
+   BLOB  → binary data (images, files)
+
+5. Common SQL Commands:
+   SELECT * FROM table          → all rows and columns
+   SELECT col FROM table        → specific column only
+   WHERE condition              → filter rows
+   ORDER BY col ASC/DESC        → sort results
+   GROUP BY col                 → group and aggregate
+   COUNT(*), SUM(), AVG()       → aggregate functions
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is SQLite?
+A: A lightweight, file-based SQL database engine.
+   No server required. Entire database = one .db file.
+   Built into Python via the sqlite3 module.
+
+Q2. What does cursor.execute() do?
+A: Runs an SQL command on the connected database.
+   Returns a Cursor object. Does NOT return query results directly.
+
+Q3. What is the difference between fetchall() and fetchone()?
+A: fetchall() → returns ALL matching rows as list of tuples.
+   fetchone() → returns only the FIRST matching row.
+
+Q4. Why is conn.commit() needed?
+A: Saves INSERT/UPDATE/DELETE changes permanently to the file.
+   Without commit(), changes exist in memory but are lost when
+   connection closes.
+
+Q5. What does SELECT * FROM my_table do?
+A: Retrieves ALL rows and ALL columns from the table.
+   * is a wildcard meaning "all columns".
+
+--- INTERMEDIATE ---
+Q6. What is Apache Impala?
+A: A high-performance SQL query engine for Hadoop/HDFS.
+   Allows SQL queries on massive distributed data.
+   Uses same SQL syntax as SQLite but at massive scale.
+
+Q7. What is the connection object in sqlite3?
+A: Represents a connection to a database file.
+   Used to create cursors, commit changes, and close the DB.
+
+Q8. How would you select only names and ages from the table?
+A: cursor.execute("SELECT name, age FROM my_table")
+   Specify column names instead of * to select specific cols.
+
+--- ADVANCED ---
+Q9. Write a query to select only people older than 25.
+A: cursor.execute("SELECT * FROM my_table WHERE age > 25")
+   Fetches Jane (30) and Bob (40) only.
+
+Q10. How would you add an UPDATE query?
+A: cursor.execute("UPDATE my_table SET age=35 WHERE name='John'")
+   Followed by conn.commit() to save the change.
+
+Q11. What is the difference between SQLite and a full RDBMS?
+A: SQLite → serverless, single-file, no user management,
+   suited for small applications and development.
+   MySQL/PostgreSQL → client-server, multi-user, concurrent
+   access, used in production web applications.
+   Impala → distributed SQL engine for big data (HDFS/cloud).

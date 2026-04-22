@@ -1,0 +1,180 @@
+TOPIC: Logistic Regression — Social Network Ads (Purchase Prediction)
+=======================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("Social_Network_Ads.csv")
+data.head()
+data.info()
+data.describe()
+data.isnull().sum()
+
+X = data[['Age', 'EstimatedSalary']]
+Y = data['Purchased']
+
+from sklearn.model_selection import train_test_split
+xtrain, xtest, ytrain, ytest = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+xtrain = sc.fit_transform(xtrain)
+xtest = sc.transform(xtest)
+
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression()
+model.fit(xtrain, ytrain)
+
+y_pred = model.predict(xtest)
+
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+print("Confusion Matrix:\n", confusion_matrix(ytest, y_pred))
+print("Accuracy:", accuracy_score(ytest, y_pred))
+print("Precision:", precision_score(ytest, y_pred))
+print("Recall:", recall_score(ytest, y_pred))
+
+plt.scatter(data['Age'], data['EstimatedSalary'], c=data['Purchased'])
+plt.xlabel("Age")
+plt.ylabel("Estimated Salary")
+plt.title("Age vs Salary")
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd                  # For loading and handling tabular data
+import numpy as np                   # For numerical operations
+import matplotlib.pyplot as plt      # For visualization
+
+# Load dataset: 400 records with Age, EstimatedSalary, Purchased (0 or 1)
+data = pd.read_csv("Social_Network_Ads.csv")
+data.head()         # View first 5 rows
+data.info()         # Check column types and non-null counts
+data.describe()     # Statistical summary (mean, std, min, max)
+data.isnull().sum() # Check for missing values (all 0 here)
+
+# Define features (X) and target (Y)
+# X = input: Age and Salary; Y = output: Did they purchase? (0=No, 1=Yes)
+X = data[['Age', 'EstimatedSalary']]
+Y = data['Purchased']
+
+from sklearn.model_selection import train_test_split
+# Split: 80% training (320 rows), 20% testing (80 rows)
+# random_state=0 ensures same split every run
+xtrain, xtest, ytrain, ytest = train_test_split(X, Y, test_size=0.2, random_state=0)
+
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+# fit_transform: learn mean/std from train data and scale it
+xtrain = sc.fit_transform(xtrain)
+# transform only: apply same scaling to test (no data leakage)
+xtest = sc.transform(xtest)
+
+from sklearn.linear_model import LogisticRegression
+model = LogisticRegression()
+# Train model: learns decision boundary using sigmoid function
+model.fit(xtrain, ytrain)
+
+# Predict class (0 or 1) for test data
+y_pred = model.predict(xtest)
+
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+# Confusion Matrix: [[TN, FP], [FN, TP]] shows correct/incorrect predictions
+print("Confusion Matrix:\n", confusion_matrix(ytest, y_pred))
+# Accuracy: (TP+TN) / Total = 92.5%
+print("Accuracy:", accuracy_score(ytest, y_pred))
+# Precision: TP / (TP+FP) = 94.4% (of those predicted Yes, how many actually Yes)
+print("Precision:", precision_score(ytest, y_pred))
+# Recall: TP / (TP+FN) = 77.3% (of actual Yes, how many were predicted Yes)
+print("Recall:", recall_score(ytest, y_pred))
+
+# Scatter plot: visualize the dataset by Age vs Salary colored by Purchase
+plt.scatter(data['Age'], data['EstimatedSalary'], c=data['Purchased'])
+plt.xlabel("Age")
+plt.ylabel("Estimated Salary")
+plt.title("Age vs Salary")
+plt.show()
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Logistic Regression: Supervised classification algorithm.
+   Uses sigmoid: P = 1/(1+e^(-z)) → outputs probability (0 to 1)
+   Decision rule: if P >= 0.5 → class 1, else class 0
+
+2. Confusion Matrix:
+                 Predicted 0    Predicted 1
+   Actual 0  →    TN (57)         FP (1)
+   Actual 1  →    FN (5)          TP (17)
+
+3. Evaluation Metrics:
+   Accuracy  = (TP+TN) / Total           → overall correct %
+   Precision = TP / (TP+FP)              → quality of +ve predictions
+   Recall    = TP / (TP+FN)              → how many +ves caught
+   F1 Score  = 2 * (P*R)/(P+R)           → balance of P and R
+
+4. StandardScaler: Transforms feature → mean=0, std=1
+   Prevents features with large values (Salary) from dominating.
+
+5. train_test_split: Divides data into train/test sets.
+   random_state ensures reproducibility.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is Logistic Regression?
+A: Binary classification using sigmoid function to predict
+   probability of belonging to class 0 or 1.
+
+Q2. What is the decision boundary in Logistic Regression?
+A: If predicted probability >= 0.5 → class 1, else class 0.
+
+Q3. What are TN, FP, FN, TP?
+A: TN=True Negative, FP=False Positive, FN=False Negative,
+   TP=True Positive. Used in confusion matrix evaluation.
+
+Q4. What is Precision vs Recall?
+A: Precision = TP/(TP+FP) → of predicted positives, how many correct.
+   Recall = TP/(TP+FN) → of actual positives, how many detected.
+
+Q5. Why scale features (StandardScaler)?
+A: Age (18-60) and Salary (15k-150k) have different ranges.
+   Scaling ensures both contribute equally to the model.
+
+--- INTERMEDIATE ---
+Q6. Why use StandardScaler only fit on training data?
+A: Fitting on test would leak information → inflated accuracy.
+   Transform test using train's mean/std only.
+
+Q7. What does confusion_matrix([[57,1],[5,17]]) tell us?
+A: 57 correctly predicted No-purchase, 17 correctly predicted
+   purchase, 1 wrongly predicted purchase, 5 missed purchase.
+
+Q8. What is the sigmoid function formula?
+A: sigmoid(z) = 1 / (1 + e^(-z))
+   where z = w·x + b (weighted sum of features)
+
+--- ADVANCED ---
+Q9. Logistic Regression vs Linear Regression?
+A: Linear → continuous output (regression).
+   Logistic → probability output via sigmoid (classification).
+
+Q10. What is F1 Score and when to use it?
+A: F1 = 2*(P*R)/(P+R). Use when dataset is imbalanced
+   and both precision and recall matter equally.
+
+Q11. When does Logistic Regression fail?
+A: When decision boundary is non-linear (e.g., circular cluster).
+   Solution: use kernel SVM, decision trees, or neural networks.
