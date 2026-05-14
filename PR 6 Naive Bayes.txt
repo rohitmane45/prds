@@ -1,0 +1,183 @@
+TOPIC: Naive Bayes Classification — Iris Species Prediction
+=============================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('Iris.csv')
+data.head()
+data.info()
+data.shape
+data = data.drop('Id', axis=1)
+print(data.isnull().sum())
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+data['Species'] = le.fit_transform(data['Species'])
+
+X = data[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']]
+y = data['Species']
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+from sklearn.naive_bayes import GaussianNB
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred, average='micro'))
+print("Recall:", recall_score(y_test, y_pred, average='micro'))
+print("Confusion Matrix:
+", confusion_matrix(y_test, y_pred))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load Iris dataset: 150 samples, 4 features, 3 species classes
+data = pd.read_csv('Iris.csv')
+data.head()         # View first 5 rows
+data.info()         # Check dtypes and null counts
+data.shape          # (150, 6)
+
+# Drop 'Id' column — it's just a row number, not a useful feature
+data = data.drop('Id', axis=1)
+
+# Check for missing values — all 0, no null handling needed
+print(data.isnull().sum())
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+# Convert text species to numbers: Iris-setosa=0, Iris-versicolor=1, Iris-virginica=2
+data['Species'] = le.fit_transform(data['Species'])
+
+# X = 4 input features (measurements), y = target species label
+X = data[['SepalLengthCm', 'SepalWidthCm', 'PetalLengthCm', 'PetalWidthCm']]
+y = data['Species']
+
+from sklearn.model_selection import train_test_split
+# 80% train (120 rows), 20% test (30 rows); random_state=42 for reproducibility
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+# Learn mean/std from training, then scale both sets
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+from sklearn.naive_bayes import GaussianNB
+# GaussianNB: assumes features follow Gaussian (normal) distribution per class
+model = GaussianNB()
+model.fit(X_train, y_train)     # Train: compute mean and variance per class
+
+# Predict species for test set
+y_pred = model.predict(X_test)
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
+# Accuracy: 100% — perfect classification on Iris
+print("Accuracy:", accuracy_score(y_test, y_pred))
+# average='micro' for multi-class: sums TP/FP/FN across all classes
+print("Precision:", precision_score(y_test, y_pred, average='micro'))
+print("Recall:", recall_score(y_test, y_pred, average='micro'))
+# 3×3 diagonal matrix = all 30 samples correctly classified
+print("Confusion Matrix:
+", confusion_matrix(y_test, y_pred))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Naive Bayes: Probabilistic classifier based on Bayes' Theorem.
+   "Naive" = assumes all features are independent of each other.
+   Formula: P(class|X) = P(X|class) * P(class) / P(X)
+
+2. GaussianNB: Variant for continuous features.
+   Assumes each feature follows a normal (Gaussian) distribution.
+   Learns mean (μ) and variance (σ²) per class per feature.
+
+3. Bayes' Theorem:
+   P(C|X) = P(X|C) × P(C) / P(X)
+   P(C)    = Prior probability of class
+   P(X|C)  = Likelihood of features given class
+   P(C|X)  = Posterior probability (what we want)
+
+4. LabelEncoder: Converts string labels to integers.
+   Iris-setosa → 0, Iris-versicolor → 1, Iris-virginica → 2
+
+5. average='micro' in multi-class metrics:
+   Sums up all TP, FP, FN across all classes before computing.
+   Good for balanced datasets like Iris.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is Naive Bayes?
+A: Probabilistic classifier using Bayes' theorem.
+   Assumes features are independent given class label.
+
+Q2. Why is it called "Naive"?
+A: It naively assumes all input features are independent,
+   which is rarely true in real data but works well in practice.
+
+Q3. What is GaussianNB?
+A: Naive Bayes variant for continuous data. Assumes each
+   feature follows a Gaussian (normal) distribution per class.
+
+Q4. What does LabelEncoder do?
+A: Converts string class labels to integers.
+   Example: Setosa→0, Versicolor→1, Virginica→2
+
+Q5. Why is Iris accuracy 100%?
+A: Iris is a clean, well-separated dataset. GaussianNB
+   easily models the clear difference between species.
+
+--- INTERMEDIATE ---
+Q6. What is Bayes' Theorem?
+A: P(C|X) = P(X|C) × P(C) / P(X)
+   Posterior = (Likelihood × Prior) / Evidence
+
+Q7. What does average='micro' mean in multi-class?
+A: Calculates metrics globally by counting total TP, FP, FN
+   across all classes (best for balanced datasets).
+
+Q8. What are the other types of Naive Bayes?
+A: GaussianNB → continuous features
+   MultinomialNB → discrete/count data (text classification)
+   BernoulliNB → binary features (0/1)
+
+--- ADVANCED ---
+Q9. What is the main assumption Naive Bayes makes?
+A: Conditional independence: given the class, all features
+   are independent of each other. P(X|C) = Π P(xi|C)
+
+Q10. When does Naive Bayes fail?
+A: When features are highly correlated — the independence
+   assumption breaks down, reducing accuracy.
+
+Q11. What is the Zero Frequency Problem in Naive Bayes?
+A: If a feature value never appears in training for a class,
+   P(X|C) = 0 → entire posterior = 0.
+   Fix: use Laplace Smoothing (add 1 to all counts).
