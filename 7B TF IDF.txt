@@ -1,0 +1,260 @@
+TOPIC: TF-IDF Implementation from Scratch — Document Similarity
+=================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import math
+
+documentA = 'Jupiter is the largest Planet'
+documentB = 'Mars is the fourth planet from the Sun'
+
+bagOfWordsA = documentA.split(' ')
+bagOfWordsB = documentB.split(' ')
+
+uniqueWords = set(bagOfWordsA).union(set(bagOfWordsB))
+
+numOfWordsA = dict.fromkeys(uniqueWords, 0)
+for word in bagOfWordsA:
+    numOfWordsA[word] += 1
+
+numOfWordsB = dict.fromkeys(uniqueWords, 0)
+for word in bagOfWordsB:
+    numOfWordsB[word] += 1
+
+print("Word Count for Document A:
+", numOfWordsA)
+print("
+Word Count for Document B:
+", numOfWordsB)
+
+def computeTF(wordDict, bagOfWords):
+    tfDict = {}
+    bagOfWordsCount = len(bagOfWords)
+    for word, count in wordDict.items():
+        tfDict[word] = count / float(bagOfWordsCount)
+    return tfDict
+
+tfA = computeTF(numOfWordsA, bagOfWordsA)
+tfB = computeTF(numOfWordsB, bagOfWordsB)
+print("
+TF for Document A:
+", tfA)
+print("
+TF for Document B:
+", tfB)
+
+def computeIDF(documents):
+    N = len(documents)
+    idfDict = dict.fromkeys(documents[0].keys(), 0)
+    for document in documents:
+        for word, val in document.items():
+            if val > 0:
+                idfDict[word] += 1
+    for word, val in idfDict.items():
+        idfDict[word] = math.log(N / float(val))
+    return idfDict
+
+idfs = computeIDF([numOfWordsA, numOfWordsB])
+print("
+IDF:
+", idfs)
+
+def computeTFIDF(tfBagOfWords, idfs):
+    tfidf = {}
+    for word, val in tfBagOfWords.items():
+        tfidf[word] = val * idfs[word]
+    return tfidf
+
+tfidfA = computeTFIDF(tfA, idfs)
+tfidfB = computeTFIDF(tfB, idfs)
+
+df = pd.DataFrame([tfidfA, tfidfB])
+print("
+TF-IDF Matrix:
+")
+print(df)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd    # For displaying TF-IDF as a DataFrame table
+import math            # For math.log() in IDF calculation
+
+# Two sample documents for TF-IDF analysis
+documentA = 'Jupiter is the largest Planet'
+documentB = 'Mars is the fourth planet from the Sun'
+
+# Split each document into list of words (Bag of Words)
+bagOfWordsA = documentA.split(' ')   # ['Jupiter', 'is', 'the', 'largest', 'Planet']
+bagOfWordsB = documentB.split(' ')   # ['Mars', 'is', 'the', 'fourth', ...]
+
+# Create set of all unique words across both documents
+# set.union() merges both sets, removing duplicates
+uniqueWords = set(bagOfWordsA).union(set(bagOfWordsB))
+
+# Initialize word count dictionaries with 0 for each unique word
+numOfWordsA = dict.fromkeys(uniqueWords, 0)
+for word in bagOfWordsA:
+    numOfWordsA[word] += 1   # Count occurrences in Document A
+
+numOfWordsB = dict.fromkeys(uniqueWords, 0)
+for word in bagOfWordsB:
+    numOfWordsB[word] += 1   # Count occurrences in Document B
+
+print("Word Count for Document A:
+", numOfWordsA)
+print("
+Word Count for Document B:
+", numOfWordsB)
+
+# COMPUTE TF (Term Frequency)
+# TF(word) = count of word in document / total words in document
+# Measures how frequently a word appears in a single document
+def computeTF(wordDict, bagOfWords):
+    tfDict = {}
+    bagOfWordsCount = len(bagOfWords)   # Total word count in document
+    for word, count in wordDict.items():
+        tfDict[word] = count / float(bagOfWordsCount)  # Normalize by length
+    return tfDict
+
+tfA = computeTF(numOfWordsA, bagOfWordsA)
+tfB = computeTF(numOfWordsB, bagOfWordsB)
+print("
+TF for Document A:
+", tfA)
+print("
+TF for Document B:
+", tfB)
+
+# COMPUTE IDF (Inverse Document Frequency)
+# IDF(word) = log(N / number of documents containing word)
+# Words appearing in all docs get IDF=0 (not useful for differentiation)
+# Rare words get high IDF (more discriminative)
+def computeIDF(documents):
+    N = len(documents)   # Total number of documents (2 here)
+    idfDict = dict.fromkeys(documents[0].keys(), 0)
+    for document in documents:
+        for word, val in document.items():
+            if val > 0:   # Count documents that contain this word
+                idfDict[word] += 1
+    for word, val in idfDict.items():
+        idfDict[word] = math.log(N / float(val))  # log(2/1)=0.693, log(2/2)=0
+    return idfDict
+
+idfs = computeIDF([numOfWordsA, numOfWordsB])
+print("
+IDF:
+", idfs)
+
+# COMPUTE TF-IDF
+# TF-IDF = TF × IDF
+# High score = word is frequent in this doc but rare across all docs
+# Words in both docs (is, the, planet) get TF-IDF = 0 (IDF=log(1)=0)
+def computeTFIDF(tfBagOfWords, idfs):
+    tfidf = {}
+    for word, val in tfBagOfWords.items():
+        tfidf[word] = val * idfs[word]   # TF × IDF
+    return tfidf
+
+tfidfA = computeTFIDF(tfA, idfs)
+tfidfB = computeTFIDF(tfB, idfs)
+
+# Display results as a DataFrame (rows = documents, columns = words)
+df = pd.DataFrame([tfidfA, tfidfB])
+print("
+TF-IDF Matrix:
+")
+print(df)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. TF (Term Frequency):
+   TF(t,d) = (count of t in d) / (total words in d)
+   Measures how often a word appears in ONE document.
+
+2. IDF (Inverse Document Frequency):
+   IDF(t) = log(N / df(t))
+   N = total documents, df(t) = docs containing term t
+   Penalizes words that appear in ALL documents (common words)
+   Rewards words that appear in FEW documents (distinctive words)
+
+3. TF-IDF:
+   TF-IDF(t,d) = TF(t,d) × IDF(t)
+   HIGH score → word is important/distinctive in this document
+   ZERO score → word appears in every document (e.g., "the", "is")
+
+4. Bag of Words (BoW):
+   Represents text as word frequency counts.
+   Loses word order but captures word importance.
+
+5. Use cases of TF-IDF:
+   - Search engines (rank documents by query relevance)
+   - Document classification
+   - Keyword extraction
+   - Text similarity comparison
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is TF-IDF?
+A: Term Frequency–Inverse Document Frequency.
+   A numerical statistic that reflects how important a word
+   is to a document in a collection of documents.
+
+Q2. What is Term Frequency (TF)?
+A: TF = count of word in document / total words in document
+   Measures frequency of a term within ONE document.
+
+Q3. What is IDF?
+A: IDF = log(N / df(t))
+   Reduces weight of common words appearing in all documents.
+
+Q4. Why do "is", "the", "planet" get TF-IDF = 0?
+A: They appear in BOTH documents, so IDF = log(2/2) = log(1) = 0
+   TF × 0 = 0. Common words have no discriminative power.
+
+Q5. What is Bag of Words?
+A: Representation of text as word frequency counts,
+   ignoring grammar and word order.
+
+--- INTERMEDIATE ---
+Q6. Why use math.log() in IDF?
+A: Log dampens the effect of large document counts.
+   Without log, IDF values could be huge for rare words.
+   log(1) = 0 for words in all docs (correct behavior).
+
+Q7. What is the TF-IDF formula?
+A: TF-IDF(t,d) = TF(t,d) × IDF(t)
+   = (count(t,d)/total(d)) × log(N/df(t))
+
+Q8. When is TF-IDF = 0?
+A: When IDF = 0 → word appears in ALL documents.
+   OR when TF = 0 → word doesn't appear in this document.
+
+--- ADVANCED ---
+Q9. What is the limitation of TF-IDF?
+A: 1. Ignores word order and context
+   2. Cannot capture semantic meaning (synonyms treated as different)
+   3. Sparse matrix for large vocabularies
+   Solution: Word embeddings (Word2Vec, BERT) handle these.
+
+Q10. How is TF-IDF used in search engines?
+A: Query words get TF-IDF scores for each document.
+   Documents with highest cumulative TF-IDF for query
+   terms are ranked highest in search results.
+
+Q11. What is cosine similarity and how does TF-IDF relate?
+A: Cosine similarity measures angle between two TF-IDF vectors.
+   cos(θ) = (A·B) / (|A||B|)
+   Value near 1 = documents are similar, 0 = not similar.
