@@ -1,0 +1,259 @@
+TOPIC: Practical 2 — Missing Values, Outlier Detection (IQR), Log Transformation (Student Data)
+=================================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+
+Data = {
+    "Student_ID": [101,102,103,104,105,106,107,108,109,110],
+    "Gender": ["Male","Female","Female","Male","Female","Male","Male","Female","Male","Male"],
+    "Study_Hours": [2.0,5.0,3.0,8.0,np.nan,6.0,4.0,10.0,1.0,3.0],
+    "Attendance": [75,88,90,95,85,110,70,65,80,78],
+    "Internal_Marks": [20,25,18,30,22,28,15,40,10,21],
+    "External_Marks": [45,50,40,60,48,55,35,70,30,44]
+}
+new_df = pd.DataFrame(Data)
+print(new_df)
+
+new_df['Study_Hours'] = new_df['Study_Hours'].fillna(0).astype(int)
+
+attendance_median = new_df['Attendance'].median()
+new_df.loc[5, 'Attendance'] = attendance_median
+
+new_df['Attendance'] = new_df['Attendance'].fillna(0).astype(int)
+
+new_df['Gender'] = new_df['Gender'].replace({'Male': 0, 'Female': 1})
+print(new_df)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=new_df[['Study_Hours', 'Attendance', 'Internal_Marks', 'External_Marks']])
+plt.title('Boxplot for Outlier Detection')
+plt.show()
+
+def detect_outliers_iqr(df, columns):
+    outliers_indices = []
+    for col in columns:
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)].index
+        outliers_indices.extend(outliers)
+        print(f'Column {col}: Lower Bound={lower_bound}, Upper Bound={upper_bound}')
+    return list(set(outliers_indices))
+
+numerical_cols = ['Study_Hours', 'Attendance', 'Internal_Marks', 'External_Marks']
+outlier_rows = detect_outliers_iqr(new_df, numerical_cols)
+print('
+Rows with potential outliers:')
+print(new_df.iloc[outlier_rows])
+
+new_df['Log_External_Marks'] = np.log1p(new_df['External_Marks'])
+
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+sns.histplot(new_df['External_Marks'], kde=True)
+plt.title('Original External Marks Distribution')
+plt.subplot(1, 2, 2)
+sns.histplot(new_df['Log_External_Marks'], kde=True, color='orange')
+plt.title('Log Transformed External Marks')
+plt.tight_layout()
+plt.show()
+
+print(new_df[['External_Marks', 'Log_External_Marks']].head())
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import pandas as pd
+import numpy as np
+
+# Create DataFrame manually with deliberate issues:
+# - Study_Hours has NaN (row 4, student 105)
+# - Attendance has 110 (impossible >100%) for student 106
+Data = {
+    "Student_ID": [101,102,103,104,105,106,107,108,109,110],
+    "Gender": ["Male","Female","Female","Male","Female","Male","Male","Female","Male","Male"],
+    "Study_Hours": [2.0,5.0,3.0,8.0,np.nan,6.0,4.0,10.0,1.0,3.0],
+    "Attendance": [75,88,90,95,85,110,70,65,80,78],
+    "Internal_Marks": [20,25,18,30,22,28,15,40,10,21],
+    "External_Marks": [45,50,40,60,48,55,35,70,30,44]
+}
+new_df = pd.DataFrame(Data)
+print(new_df)
+
+# MISSING VALUE HANDLING:
+# fillna(0) → replaces NaN with 0 (Study_Hours for student 105)
+# astype(int) → converts float column to integer after fill
+new_df['Study_Hours'] = new_df['Study_Hours'].fillna(0).astype(int)
+
+# OUTLIER FIX — Replace erroneous Attendance=110 with median
+# median() = middle value of sorted data (less affected by outliers)
+attendance_median = new_df['Attendance'].median()  # = 82.5
+new_df.loc[5, 'Attendance'] = attendance_median    # Replace row index 5
+
+# Convert Attendance to integer after median replacement
+new_df['Attendance'] = new_df['Attendance'].fillna(0).astype(int)
+
+# LABEL ENCODING — Convert categorical Gender to numeric
+# Male → 0, Female → 1
+new_df['Gender'] = new_df['Gender'].replace({'Male': 0, 'Female': 1})
+print(new_df)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# BOXPLOT — Visualize all numeric columns for outlier detection
+# Box = IQR, whiskers = 1.5×IQR, dots = outliers
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=new_df[['Study_Hours', 'Attendance', 'Internal_Marks', 'External_Marks']])
+plt.title('Boxplot for Outlier Detection')
+plt.show()
+
+# IQR OUTLIER DETECTION FUNCTION
+# IQR = Q3 - Q1 (Interquartile Range)
+# Any value < Q1 - 1.5×IQR or > Q3 + 1.5×IQR is an outlier
+def detect_outliers_iqr(df, columns):
+    outliers_indices = []
+    for col in columns:
+        Q1 = df[col].quantile(0.25)   # 25th percentile
+        Q3 = df[col].quantile(0.75)   # 75th percentile
+        IQR = Q3 - Q1                  # Spread of middle 50% of data
+        lower_bound = Q1 - 1.5 * IQR  # Minimum acceptable value
+        upper_bound = Q3 + 1.5 * IQR  # Maximum acceptable value
+        # Find row indices where value is outside bounds
+        outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)].index
+        outliers_indices.extend(outliers)
+        print(f'Column {col}: Lower Bound={lower_bound}, Upper Bound={upper_bound}')
+    return list(set(outliers_indices))  # set() removes duplicate row indices
+
+numerical_cols = ['Study_Hours', 'Attendance', 'Internal_Marks', 'External_Marks']
+outlier_rows = detect_outliers_iqr(new_df, numerical_cols)
+print('
+Rows with potential outliers:')
+print(new_df.iloc[outlier_rows])  # No outliers found after fixing Attendance
+
+# LOG TRANSFORMATION — Reduce skewness in External_Marks
+# np.log1p(x) = log(1+x) → handles x=0 without error
+# Used when data is right-skewed (long tail on right side)
+new_df['Log_External_Marks'] = np.log1p(new_df['External_Marks'])
+
+# Compare original vs log-transformed distribution
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+sns.histplot(new_df['External_Marks'], kde=True)
+plt.title('Original External Marks Distribution')
+plt.subplot(1, 2, 2)
+sns.histplot(new_df['Log_External_Marks'], kde=True, color='orange')
+plt.title('Log Transformed External Marks')
+plt.tight_layout()
+plt.show()
+
+# Display comparison: original vs log values
+print(new_df[['External_Marks', 'Log_External_Marks']].head())
+# 45 → 3.828641, 50 → 3.931826, etc.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Missing Value Handling Strategies:
+   fillna(0)           → replace with 0 (domain-specific)
+   fillna(mean)        → replace with column mean
+   fillna(median)      → replace with median (robust to outliers)
+   dropna()            → remove rows with any NaN
+   interpolate()       → estimate from neighboring values
+
+2. Outlier Detection — IQR Method:
+   Q1 = 25th percentile (lower quartile)
+   Q3 = 75th percentile (upper quartile)
+   IQR = Q3 - Q1
+   Lower bound = Q1 - 1.5 × IQR
+   Upper bound = Q3 + 1.5 × IQR
+   Any value outside bounds = outlier
+
+3. Label Encoding:
+   Converts categorical text to numbers.
+   Male → 0, Female → 1
+   Required because ML models work with numbers, not strings.
+
+4. Log Transformation:
+   np.log1p(x) = log(1 + x)
+   Use when data is right-skewed (positively skewed).
+   Makes distribution more normal/symmetric.
+   Useful for: income, population, marks data.
+
+5. Median vs Mean for Outlier Replacement:
+   Mean is sensitive to extreme values (outliers shift it).
+   Median is the middle value — robust, not affected by outliers.
+   Prefer median when outlier is being replaced.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is a missing value?
+A: A cell with no data, represented as NaN (Not a Number)
+   in Pandas. Can result from data collection errors.
+
+Q2. What is an outlier?
+A: A data point that lies far from other values.
+   Example: Attendance = 110% is a clear error/outlier.
+
+Q3. What is IQR?
+A: Interquartile Range = Q3 - Q1.
+   Represents the spread of the middle 50% of data.
+   Used to detect outliers with the 1.5×IQR rule.
+
+Q4. Why use np.log1p() instead of np.log()?
+A: log(0) = -infinity (undefined). log1p(x) = log(1+x),
+   so even x=0 gives log1p(0) = log(1) = 0. Safer.
+
+Q5. What is Label Encoding?
+A: Converting text categories to integers.
+   Male→0, Female→1. Required for ML algorithms.
+
+--- INTERMEDIATE ---
+Q6. Explain the IQR outlier detection formula.
+A: Lower = Q1 - 1.5×IQR, Upper = Q3 + 1.5×IQR
+   Any value below Lower or above Upper is an outlier.
+   The 1.5 multiplier is Tukey's standard rule.
+
+Q7. What does fillna(median) vs fillna(mean) do?
+A: Both replace NaN. Median is preferred when outliers
+   exist in the column, as mean shifts toward extreme values.
+
+Q8. What is right-skewed data and why transform it?
+A: Right skew = most values are small, few are very large
+   (long tail on right). Log transform compresses large values,
+   making distribution more symmetric for better ML performance.
+
+--- ADVANCED ---
+Q9. What is the difference between loc and iloc?
+A: loc → label-based indexing (uses row/column names).
+   iloc → integer position-based indexing (0, 1, 2...).
+   new_df.loc[5, 'Attendance'] → row label 5, column 'Attendance'.
+
+Q10. Why is df.replace() used instead of LabelEncoder here?
+A: replace() is simpler for binary categories (Male/Female).
+   LabelEncoder is better for many categories as it does
+   the mapping automatically without manual dict.
+
+Q11. What are limitations of IQR outlier method?
+A: 1. Assumes roughly symmetric data.
+   2. Doesn't work well for multimodal distributions.
+   3. May flag legitimate extreme values as outliers.
+   Alternatives: Z-score method, DBSCAN-based detection.
