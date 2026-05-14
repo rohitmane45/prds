@@ -1,0 +1,236 @@
+TOPIC: Text Analysis — Tokenization, Stopwords, Stemming, Lemmatization, POS Tagging
+=======================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: CLEAN CODE (No Comments)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import nltk
+import re
+
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('punkt_tab')
+nltk.download('averaged_perceptron_tagger_eng')
+
+text = """Tokenization is the first step in text analytics.
+The process of breaking down a text paragraph into smaller chunks
+such as words or sentences is called Tokenization."""
+
+from nltk.tokenize import sent_tokenize
+tokenized_text = sent_tokenize(text)
+print("Sentence Tokenization:
+", tokenized_text)
+
+from nltk.tokenize import word_tokenize
+tokenized_word = word_tokenize(text)
+print("
+Word Tokenization:
+", tokenized_word)
+
+from nltk.corpus import stopwords
+stop_words = set(stopwords.words("english"))
+text2 = "How to remove stop words with NLTK library in Python?"
+text2 = re.sub('[^a-zA-Z]', ' ', text2)
+tokens = word_tokenize(text2.lower())
+filtered_text = [w for w in tokens if w not in stop_words]
+print("
+Original Tokens:
+", tokens)
+print("
+Filtered Tokens (Stopwords Removed):
+", filtered_text)
+
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+e_words = ["wait", "waiting", "waited", "waits"]
+print("
+Stemming:")
+for w in e_words:
+    print(w, "->", ps.stem(w))
+
+from nltk.stem import WordNetLemmatizer
+wordnet_lemmatizer = WordNetLemmatizer()
+text3 = "studies studying cries cry"
+tokenization = word_tokenize(text3)
+print("
+Lemmatization:")
+for w in tokenization:
+    print("Lemma for {} is {}".format(w, wordnet_lemmatizer.lemmatize(w)))
+
+data = "The pink sweater fit her perfectly"
+words = word_tokenize(data)
+print("
+POS Tagging:")
+for word in words:
+    print(nltk.pos_tag([word]))
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import nltk     # Natural Language Toolkit — NLP library
+import re       # Regular expressions for text cleaning
+
+# Download required NLTK data packages
+nltk.download('punkt')                        # Sentence/word tokenizer data
+nltk.download('stopwords')                    # List of common stopwords
+nltk.download('wordnet')                      # Vocabulary for lemmatization
+nltk.download('averaged_perceptron_tagger')   # POS tagging model
+nltk.download('punkt_tab')                    # Updated punkt tokenizer
+nltk.download('averaged_perceptron_tagger_eng') # English POS tagger
+
+# Sample text for tokenization
+text = """Tokenization is the first step in text analytics.
+The process of breaking down a text paragraph into smaller chunks
+such as words or sentences is called Tokenization."""
+
+# SENTENCE TOKENIZATION: splits text into list of sentences
+from nltk.tokenize import sent_tokenize
+tokenized_text = sent_tokenize(text)
+print("Sentence Tokenization:
+", tokenized_text)
+
+# WORD TOKENIZATION: splits text into list of individual words + punctuation
+from nltk.tokenize import word_tokenize
+tokenized_word = word_tokenize(text)
+print("
+Word Tokenization:
+", tokenized_word)
+
+# STOPWORDS REMOVAL: remove common meaningless words (the, is, to, with...)
+from nltk.corpus import stopwords
+stop_words = set(stopwords.words("english"))  # Load English stopwords list
+text2 = "How to remove stop words with NLTK library in Python?"
+# re.sub('[^a-zA-Z]', ' ', text2) → remove all non-alphabet characters (?, .)
+text2 = re.sub('[^a-zA-Z]', ' ', text2)
+tokens = word_tokenize(text2.lower())  # Convert to lowercase first
+# Keep only tokens that are NOT in stopwords list
+filtered_text = [w for w in tokens if w not in stop_words]
+print("
+Original Tokens:
+", tokens)
+print("
+Filtered Tokens (Stopwords Removed):
+", filtered_text)
+
+# STEMMING: chops word to its root/base form (removes suffixes)
+# Not always grammatically correct: "studies" → "studi"
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+e_words = ["wait", "waiting", "waited", "waits"]
+print("
+Stemming:")
+for w in e_words:
+    print(w, "->", ps.stem(w))   # All become "wait"
+
+# LEMMATIZATION: reduces word to proper dictionary base form
+# More accurate than stemming: "studies" → "study"
+from nltk.stem import WordNetLemmatizer
+wordnet_lemmatizer = WordNetLemmatizer()
+text3 = "studies studying cries cry"
+tokenization = word_tokenize(text3)
+print("
+Lemmatization:")
+for w in tokenization:
+    print("Lemma for {} is {}".format(w, wordnet_lemmatizer.lemmatize(w)))
+
+# POS TAGGING: assigns Part-of-Speech tag to each word
+# DT=Determiner, NN=Noun, RB=Adverb, PRP$=Possessive Pronoun
+data = "The pink sweater fit her perfectly"
+words = word_tokenize(data)
+print("
+POS Tagging:")
+for word in words:
+    print(nltk.pos_tag([word]))  # Tag each word individually
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: THEORY TO LEARN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. NLP Pipeline (order matters):
+   Raw Text → Tokenization → Stopword Removal → Stemming/
+   Lemmatization → POS Tagging → Feature Extraction
+
+2. Tokenization:
+   Sentence tokenization → splits by sentence boundary (. ! ?)
+   Word tokenization → splits by whitespace and punctuation
+
+3. Stopwords: High-frequency words with little meaning.
+   Examples: is, the, to, in, and, of, a
+   Removing them reduces noise and improves model performance.
+
+4. Stemming vs Lemmatization:
+   Stemming  → cuts suffix rules (fast, but can be wrong)
+               waiting → wait, studies → studi
+   Lemmatization → uses vocabulary dictionary (slow, accurate)
+               waiting → wait, studies → study
+
+5. POS Tags (common):
+   NN  = Noun            VB  = Verb
+   JJ  = Adjective       RB  = Adverb
+   DT  = Determiner      PRP = Personal Pronoun
+   IN  = Preposition     CC  = Conjunction
+
+6. re.sub('[^a-zA-Z]', ' ', text):
+   Regular expression that replaces any non-letter character
+   with a space → removes numbers, punctuation, symbols.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: VIVA QUESTIONS (Basic to Advanced)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+--- BASIC ---
+Q1. What is Tokenization?
+A: Process of splitting text into smaller units (tokens)
+   like sentences or words.
+
+Q2. What are Stopwords?
+A: Common words with little meaning like "is", "the", "to".
+   Removed to reduce noise in NLP processing.
+
+Q3. Difference between Stemming and Lemmatization?
+A: Stemming → fast, rule-based, may give non-words (studi)
+   Lemmatization → slow, dictionary-based, gives real words (study)
+
+Q4. What is POS Tagging?
+A: Part-of-Speech tagging — assigns grammatical role to each word
+   (noun, verb, adjective, adverb, etc.)
+
+Q5. What does re.sub('[^a-zA-Z]', ' ', text) do?
+A: Removes everything that is NOT a letter (numbers, symbols,
+   punctuation) and replaces with a space.
+
+--- INTERMEDIATE ---
+Q6. Why is text.lower() done before tokenization?
+A: Normalizes text so "Python" and "python" are treated
+   as the same word, not two different tokens.
+
+Q7. What is PorterStemmer?
+A: A rule-based stemming algorithm by Martin Porter.
+   Applies a fixed set of suffix-removal rules to words.
+
+Q8. What is WordNetLemmatizer?
+A: Uses WordNet lexical database to find the correct
+   base form (lemma) of each word.
+
+--- ADVANCED ---
+Q9. Why use Lemmatization over Stemming in production?
+A: Lemmatization gives valid dictionary words, making output
+   more interpretable. Stemming may produce gibberish.
+   Important for chatbots, search engines, medical NLP.
+
+Q10. What are common NLP applications using these techniques?
+A: Sentiment analysis, spam detection, chatbots,
+   document classification, search engine indexing,
+   machine translation, information retrieval.
+
+Q11. What is the difference between sent_tokenize and split('.')?
+A: sent_tokenize uses ML models to detect sentence boundaries
+   correctly (handles Dr., Mr., abbreviations).
+   split('.') blindly splits on every period — inaccurate.
