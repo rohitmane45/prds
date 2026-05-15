@@ -14,6 +14,30 @@ sns.boxplot(x='sex', y='age', hue='survived', data=titanic)
 plt.show()
 
 
+
+Code 
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load Titanic Dataset
+df = sns.load_dataset('titanic')
+
+# Display first rows
+print(df.head())
+
+# Dataset info
+print(df.info())
+
+# Boxplot
+sns.boxplot(x='sex', y='age', data=df, hue='survived')
+
+plt.title("Age Distribution by Gender and Survival")
+plt.xlabel("Gender")
+plt.ylabel("Age")
+
+plt.show()
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SECTION 2: COMMENTED CODE + LINE-BY-LINE EXPLANATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
